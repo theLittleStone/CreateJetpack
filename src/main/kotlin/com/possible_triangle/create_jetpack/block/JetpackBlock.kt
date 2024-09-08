@@ -5,6 +5,7 @@ import com.simibubi.create.content.equipment.armor.BacktankBlock
 import com.simibubi.create.content.equipment.armor.BacktankBlockEntity
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.ListTag
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.ItemLike
@@ -18,20 +19,18 @@ class JetpackBlock(private val item: ItemLike, properties: Properties) : Backtan
         pos: BlockPos,
         state: BlockState
     ): ItemStack {
-        val item = ItemStack(item)
+
         val tile = getBlockEntityOptional(world, pos)
 
         val air = tile.map { it.getAirLevel() }.orElse(0) as Int
-        item.orCreateTag.putInt("Air", air)
 
-        val enchants = tile.map { it.enchantmentTag }.orElse(ListTag())
-        if (!enchants.isEmpty()) {
-            val enchantmentTagList = item.enchantmentTags
-            enchantmentTagList.addAll(enchants)
-            item.orCreateTag.put("Enchantments", enchantmentTagList)
-        }
+        val forgeCapsTag = tile.map { it.getForgeCapsTag() }.orElse(null)
+        val vanillaTag = tile.map {it.getVanillaTag()}.orElse(CompoundTag())
 
-        tile.map { it.customName }.ifPresent { item.hoverName = it }
+        val item = ItemStack(item, 1, forgeCapsTag)
+        vanillaTag.putInt("Air", air)
+
+        item.setTag(vanillaTag)
 
         return item
     }
